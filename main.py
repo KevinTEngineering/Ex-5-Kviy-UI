@@ -1,12 +1,20 @@
 import os
 
-#os.environ['DISPLAY'] = ":0.0"
-#os.environ['KIVY_WINDOW'] = 'egl_rpi'
+# os.environ['DISPLAY'] = ":0.0"
+# os.environ['KIVY_WINDOW'] = 'egl_rpi'
 
 from kivy.app import App
 from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.widget import Widget
+from kivy.properties import ObjectProperty
+from kivy.animation import Animation
+from kivy.uix.slider import Slider
+from kivy.uix.image import Image, AsyncImage
+from pidev.Joystick import Joystick
+from threading import Thread
+from time import sleep
 
 from pidev.MixPanel import MixPanel
 from pidev.kivy.PassCodeScreen import PassCodeScreen
@@ -14,6 +22,10 @@ from pidev.kivy.PauseScreen import PauseScreen
 from pidev.kivy import DPEAButton
 from pidev.kivy import ImageButton
 from pidev.kivy.selfupdatinglabel import SelfUpdatingLabel
+
+from kivy.uix.button import Button
+from kivy.uix.label import Label
+from kivy.uix.floatlayout import FloatLayout
 
 from datetime import datetime
 
@@ -28,9 +40,6 @@ ADMIN_SCREEN_NAME = 'admin'
 
 
 class ProjectNameGUI(App):
-    """
-    Class to handle running the GUI Application
-    """
 
     def build(self):
         """
@@ -43,10 +52,12 @@ class ProjectNameGUI(App):
 Window.clearcolor = (1, 1, 1, 1)  # White
 
 
+# noinspection PyGlobalUndefined
 class MainScreen(Screen):
     """
     Class to handle the main screen and its associated touch events
     """
+    joy = Joystick(0, False)
 
     def pressed(self):
         """
@@ -55,6 +66,62 @@ class MainScreen(Screen):
         """
         print("Callback from MainScreen.pressed()")
 
+    trigger = ObjectProperty(DPEAButton)
+
+    def switch(self):
+        if self.trigger.text == "On":
+            self.trigger.text = "Off"
+        elif self.trigger.text == "Off":
+            self.trigger.text = "On"
+
+    counter = ObjectProperty(DPEAButton)
+    increase = 0
+
+    def counting(self):
+        # self.increase += 1
+        # self.counter.text = str(self.increase)
+        self.counter.text = str(self.joy.get_axis('x'))
+
+    def joy_update(self):
+        while True:
+            self.image.x += self.joy.get_axis('x')
+            self.image.y += self.joy.get_axis('y')            # self.joy_x_val = self.joy.get_axis('x')
+            # self.ids.joy_label.x(self.joy_x_val)
+            # self.joy_pos_x.text = str(self.joy.get_axis('x'))
+            # self.joy_y_val = self.joy.get_axis('y')
+            # self.joy_pos_y.text = str(self.joy.get_axis('y'))
+            sleep(.01)
+
+    def start_joy_thread(self):
+        Thread(target=self.joy_update).start()
+
+    motor = ObjectProperty(DPEAButton)
+
+    def motor_switch(self):
+
+        if self.ids.motor_servant.text == "On":
+            self.ids.motor_servant.text = "Off"
+        elif self.ids.motor_servant.text == "Off":
+            self.ids.motor_servant.text = "On"
+
+    image_check = True
+    image = ObjectProperty(None)
+
+    def change_image(self):
+        if self.image_check == True:
+            print("Yes")
+            self.image_check = False
+        elif self.image_check == False:
+            print("No")
+            self.image_check = True
+
+    def animation(self, widget, *args):
+        anim = Animation(y=-30) + Animation(y=200)
+        anim.start(widget)
+
+    def button_pressed(self):
+        pass
+
     def admin_action(self):
         """
         Hidden admin button touch event. Transitions to passCodeScreen.
@@ -62,6 +129,16 @@ class MainScreen(Screen):
         :return: None
         """
         SCREEN_MANAGER.current = 'passCode'
+
+
+class Screen2(Screen):
+    pass
+
+
+class Screen3(Screen):
+    def movement(self, widget, *args):
+        anim = Animation(x=-30) + Animation(x=200)
+        anim.start(widget)
 
 
 class AdminScreen(Screen):
@@ -77,8 +154,10 @@ class AdminScreen(Screen):
         """
         Builder.load_file('AdminScreen.kv')
 
-        PassCodeScreen.set_admin_events_screen(ADMIN_SCREEN_NAME)  # Specify screen name to transition to after correct password
-        PassCodeScreen.set_transition_back_screen(MAIN_SCREEN_NAME)  # set screen name to transition to if "Back to Game is pressed"
+        PassCodeScreen.set_admin_events_screen(
+            ADMIN_SCREEN_NAME)  # Specify screen name to transition to after correct password
+        PassCodeScreen.set_transition_back_screen(
+            MAIN_SCREEN_NAME)  # set screen name to transition to if "Back to Game is pressed"
 
         super(AdminScreen, self).__init__(**kwargs)
 
@@ -112,7 +191,10 @@ Widget additions
 """
 
 Builder.load_file('main.kv')
-SCREEN_MANAGER.add_widget(MainScreen(name=MAIN_SCREEN_NAME))
+SCREEN_MANAGER.add_widget(MainScreen(name='main'))
+SCREEN_MANAGER.add_widget(Screen2(name='second'))
+SCREEN_MANAGER.add_widget(Screen3(name='third'))
+
 SCREEN_MANAGER.add_widget(PassCodeScreen(name='passCode'))
 SCREEN_MANAGER.add_widget(PauseScreen(name='pauseScene'))
 SCREEN_MANAGER.add_widget(AdminScreen(name=ADMIN_SCREEN_NAME))
@@ -132,6 +214,11 @@ def send_event(event_name):
 
     MIXPANEL.set_event_name(event_name)
     MIXPANEL.send_event()
+
+
+class MyFloat(Widget):
+    def btn(self):
+        print("Wah")
 
 
 if __name__ == "__main__":

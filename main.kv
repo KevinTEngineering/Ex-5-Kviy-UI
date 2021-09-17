@@ -1,36 +1,172 @@
 <MainScreen>:
-    #: import time __main__.time
 
+    #: import time __main__.time
+    color: 1,1,1,1
     name: 'main'
+    on_enter:root.start_joy_thread()
+
+    trigger: trigger
+    counter: counter
+    motor: motor
+    image: image_button
     FloatLayout:
         size_hint: None, None
 
-    DPEAButton:
-        id: test_button
-        text: 'test'
-        size: 100, 100
-        x: root.width * 0.75
-        y: root.height * 0.5
+
+    Label:
+        id:slider_label
+        text: str(slider.value)
+        pos_hint:{"x":.0,"y": .2}
         color: 0, 1, 0, 1
-        on_press: root.pressed()
+        font_size: 30
+    Label:
+        id:joy_pos_x
+        text: 'x'
+        pos_hint:{"x":.0,"y": .1}
+        color: 0, 1, 0, 1
+        font_size: 50
+
+    Label:
+        id:joy_pos_y
+        text: 'y'
+        pos_hint:{"x":.1,"y": .1}
+        color: 0, 1, 0, 1
+        font_size: 50
+
+    Label:
+        text: 'Position'
+        pos_hint:{"x":.0,"y": .3}
+        color: 0, 1, 0, 1
+        font_size: 30
 
     DPEAButton:
-        text: "test2"
+        id: trigger
+        text: 'On'
         size: 100, 100
-        x: root.width * 0.25
-        y: root.height * 0.5
-        color: 1, 0, 0, 1
-        on_press: root.pressed()
+        x: root.width * 0.4
+        y: root.height * 0.2
+        color: 0, 1, 0, 1
+        on_press: root.switch()
 
-    SelfUpdatingLabel:
-        id: time_label
-        size_hint: None, None
+    DPEAButton:
+        id: counter
+        text: '0'
+        size: 100, 100
+        x: root.width * 0.6
+        y: root.height * 0.2
+        color: 0, 1, 0, 1
+        on_press: root.counting()
+
+    DPEAButton:
+        id: motor
+        text: 'Motor'
+        size: 100, 100
+        x: root.width * 0.8
+        y: root.height * 0.2
+        color: 1, 0, 0, 1
+        on_press: root.motor_switch()
+
+    Label:
+        id: motor_servant
+        text: "On"
+        font_size: 40
+        size: 100, 100
+        pos_hint:{"x":.35,"y": -.34}
+
+        color: 1, 0, 0, 1
+
+    Slider:
+        id: slider
+        color: 1, 0, 0, 1
+        min:0
+        max:100
+        pos_hint: {"y": 0.35}
+        orientation: 'horizontal'
+        text: 'Position'
+
+
+    DPEAButton:
+        text: 'corn'
+        id:image_button
+        x: root.width * 0.1
+        y: root.height * 0.2
+        on_release:
+            app.root.current = "second"
+            root.manager.transition.direction = "right"
+        Image:
+            source:'think_about_it.jpg'
+            allow_stretch: True
+            keep_ratio: True
+            center_x: self.parent.center_x
+            center_y: self.parent.center_y
+
+    DPEAButton:
+        id:expand_brain
+        x: root.width * 0.25
+        y: root.height * 0.2
+        on_release:
+            root.animation(self)
+            app.root.current = "third"
+            root.manager.transition.direction = "up"
+        Image:
+            source:'think_about_it.jpg'
+            allow_stretch: True
+            keep_ratio: True
+            center_x: self.parent.center_x
+            center_y: self.parent.center_y
+
+    Label:
+        id: button_check
+        text: "checking"
+        pos_hint:{"x":.0,"y": 0}
+        color: 0, 1, 0, 1
         font_size: 30
-        update_property: time.now
-        update_property_parameters: None
-        center_x: root.width * 0.5
-        center_y: root.height * 0.45
-        color: 1, 1, 1, 1
-        bold: True
-        outline_width: self.font_size * 0.1
-        outline_color: 0, 0, 0
+
+
+
+
+
+
+<Screen2>
+    FloatLayout:
+        name: 'second'
+        canvas.before:
+            Rectangle:
+                source:'big_brain.jpg'
+                size: root.width, root.height
+                pos: self.pos
+        DPEAButton:
+            id:background_switch
+            x: root.width * 0.1
+            y: root.height * 0.2
+            on_release:
+                app.root.current = "main"
+                root.manager.transition.direction = "left"
+            Image:
+                source:'think_about_it.jpg'
+                allow_stretch: True
+                keep_ratio: True
+                x: root.width * 0.1
+                y: root.height * 0.2
+
+<Screen3>
+    FloatLayout:
+        name:'third'
+        DPEAButton:
+            id:animated_switch
+            x: root.width * 0.1
+            y: root.height * 0.2
+            on_press:
+                root.movement(self)
+                app.root.current = "main"
+                root.manager.transition.direction = "down"
+            Image:
+                source:'brain_expand.jpg'
+                allow_stretch: True
+                keep_ratio: True
+                center_x: self.parent.center_x
+                center_y: self.parent.center_y
+
+
+
+
